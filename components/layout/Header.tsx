@@ -6,8 +6,7 @@ import { Search, ShoppingCart, Heart, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/contexts/CartContext';
+import { useApp } from '@/contexts/AppContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,8 +18,9 @@ import {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { user, logout } = useAuth();
-  const { totalItems } = useCart();
+  const { user, logout, cart } = useApp();
+
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

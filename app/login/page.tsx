@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -18,7 +18,7 @@ export default function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login } = useApp();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,11 +26,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      toast.success('Connexion réussie !');
-      router.push('/');
+      const success = login(formData.email, formData.password);
+      if (success) {
+        toast.success('Connexion réussie !');
+        // Redirect based on user role
+        if (formData.email === 'client@gdk.com') {
+          router.push('/products');
+        } else if (formData.email === 'seller@gdk.com') {
+          router.push('/dashboard');
+        }
+      } else {
+        toast.error('Email ou mot de passe incorrect');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Erreur de connexion');
+      toast.error('Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -56,6 +65,11 @@ export default function LoginPage() {
           <CardDescription>
             Connectez-vous à votre compte GDK
           </CardDescription>
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+            <p className="font-semibold mb-2">Comptes de démonstration :</p>
+            <p><strong>Client :</strong> client@gdk.com / client123</p>
+            <p><strong>Vendeur :</strong> seller@gdk.com / seller123</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

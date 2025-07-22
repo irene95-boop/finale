@@ -10,118 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
-
-// Mock product data
-const mockProducts = [
-  {
-    _id: '1',
-    name: 'Rouge à Lèvres Luxury Matte',
-    description: 'Rouge à lèvres longue tenue avec fini mat luxueux. Formule hydratante enrichie en vitamines.',
-    price: 29.99,
-    category: 'cosmetics',
-    subcategory: 'makeup',
-    brand: 'Luxury Beauty',
-    images: [
-      'https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/3373736/pexels-photo-3373736.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.8,
-    reviewCount: 124,
-    stock: 15,
-    featured: true
-  },
-  {
-    _id: '2',
-    name: 'Sérum Anti-Âge Premium',
-    description: 'Sérum concentré en acide hyaluronique et peptides pour une peau visiblement plus jeune.',
-    price: 89.99,
-    category: 'cosmetics',
-    subcategory: 'skincare',
-    brand: 'Skincare Pro',
-    images: [
-      'https://images.pexels.com/photos/3992132/pexels-photo-3992132.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/4465124/pexels-photo-4465124.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.9,
-    reviewCount: 89,
-    stock: 8,
-    featured: true
-  },
-  {
-    _id: '3',
-    name: 'Smartphone Pro Max 256GB',
-    description: 'Smartphone dernière génération avec écran OLED 6.7", triple caméra 108MP et 5G.',
-    price: 1199.99,
-    category: 'electronics',
-    subcategory: 'smartphones',
-    brand: 'TechBrand',
-    images: [
-      'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.7,
-    reviewCount: 256,
-    stock: 12,
-    featured: false
-  },
-  {
-    _id: '4',
-    name: 'Écouteurs Sans Fil Premium',
-    description: 'Écouteurs Bluetooth avec réduction de bruit active et autonomie 30h.',
-    price: 299.99,
-    category: 'electronics',
-    subcategory: 'audio',
-    brand: 'AudioTech',
-    images: [
-      'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/3945667/pexels-photo-3945667.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.6,
-    reviewCount: 178,
-    stock: 25,
-    featured: false
-  },
-  {
-    _id: '5',
-    name: 'Fond de Teint Fluide HD',
-    description: 'Fond de teint haute définition pour un teint parfait toute la journée.',
-    price: 45.99,
-    category: 'cosmetics',
-    subcategory: 'makeup',
-    brand: 'Beauty Pro',
-    images: [
-      'https://images.pexels.com/photos/3373736/pexels-photo-3373736.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.5,
-    reviewCount: 92,
-    stock: 20,
-    featured: false
-  },
-  {
-    _id: '6',
-    name: 'Tablette Graphique Pro',
-    description: 'Tablette graphique professionnelle avec stylet sensible à la pression.',
-    price: 599.99,
-    category: 'electronics',
-    subcategory: 'accessories',
-    brand: 'DesignTech',
-    images: [
-      'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    rating: 4.8,
-    reviewCount: 67,
-    stock: 5,
-    featured: false
-  }
-];
 
 const categories = [
   { value: 'all', label: 'Toutes les catégories' },
-  { value: 'cosmetics', label: 'Cosmétiques' },
-  { value: 'electronics', label: 'Électronique' }
+  { value: 'Cosmetics', label: 'Cosmétiques' },
+  { value: 'Electronics', label: 'Électronique' }
 ];
 
 const sortOptions = [
@@ -133,16 +28,12 @@ const sortOptions = [
 ];
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState(mockProducts);
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const { products, addToCart, favorites, addToFavorites, removeFromFavorites, user } = useApp();
+  const [filteredProducts, setFilteredProducts] = useState(products);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [favorites, setFavorites] = useState<string[]>([]);
-  
-  const { addToCart } = useCart();
-  const { user } = useAuth();
 
   // Filter and sort products
   useEffect(() => {
@@ -174,27 +65,23 @@ export default function ProductsPage() {
         filtered.sort((a, b) => b.rating - a.rating);
         break;
       case 'newest':
-        filtered.sort((a, b) => new Date(b._id).getTime() - new Date(a._id).getTime());
+        filtered.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
         break;
       default:
-        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        filtered.sort((a, b) => b.rating - a.rating);
     }
 
     setFilteredProducts(filtered);
   }, [products, searchQuery, selectedCategory, sortBy]);
 
-  const handleAddToCart = async (productId: string) => {
+  const handleAddToCart = (productId: string) => {
     if (!user) {
       toast.error('Veuillez vous connecter pour ajouter au panier');
       return;
     }
 
-    try {
-      await addToCart(productId);
-      toast.success('Produit ajouté au panier !');
-    } catch (error) {
-      toast.error('Erreur lors de l\'ajout au panier');
-    }
+    addToCart(productId);
+    toast.success('Produit ajouté au panier !');
   };
 
   const toggleFavorite = (productId: string) => {
@@ -203,17 +90,13 @@ export default function ProductsPage() {
       return;
     }
 
-    setFavorites(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-    
-    toast.success(
-      favorites.includes(productId) 
-        ? 'Retiré des favoris' 
-        : 'Ajouté aux favoris'
-    );
+    if (favorites.includes(productId)) {
+      removeFromFavorites(productId);
+      toast.success('Retiré des favoris');
+    } else {
+      addToFavorites(productId);
+      toast.success('Ajouté aux favoris');
+    }
   };
 
   return (
@@ -325,7 +208,7 @@ export default function ProductsPage() {
               : 'space-y-4'
           }>
             {filteredProducts.map((product) => (
-              <Card key={product._id} className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden bg-white">
+              <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden bg-white">
                 {viewMode === 'grid' ? (
                   <>
                     {/* Product Image */}
@@ -340,18 +223,11 @@ export default function ProductsPage() {
                           size="sm"
                           variant="ghost"
                           className="bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 rounded-full w-8 h-8 p-0"
-                          onClick={() => toggleFavorite(product._id)}
+                          onClick={() => toggleFavorite(product.id)}
                         >
-                          <Heart className={`w-4 h-4 ${favorites.includes(product._id) ? 'fill-red-500 text-red-500' : ''}`} />
+                          <Heart className={`w-4 h-4 ${favorites.includes(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                         </Button>
                       </div>
-                      {product.featured && (
-                        <div className="absolute top-3 left-3">
-                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                            Populaire
-                          </Badge>
-                        </div>
-                      )}
                       {product.stock <= 5 && (
                         <div className="absolute bottom-3 left-3">
                           <Badge variant="secondary" className="text-orange-600 bg-orange-100">
@@ -391,13 +267,13 @@ export default function ProductsPage() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Link href={`/products/${product._id}`} className="flex-1">
+                        <Link href={`/product/${product.id}`} className="flex-1">
                           <Button variant="outline" className="w-full">
                             Voir Détails
                           </Button>
                         </Link>
                         <Button 
-                          onClick={() => handleAddToCart(product._id)}
+                          onClick={() => handleAddToCart(product.id)}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-3"
                           disabled={product.stock === 0}
                         >
@@ -432,9 +308,9 @@ export default function ProductsPage() {
                             size="sm"
                             variant="ghost"
                             className="text-gray-600 hover:text-red-500"
-                            onClick={() => toggleFavorite(product._id)}
+                            onClick={() => toggleFavorite(product.id)}
                           >
-                            <Heart className={`w-5 h-5 ${favorites.includes(product._id) ? 'fill-red-500 text-red-500' : ''}`} />
+                            <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                           </Button>
                         </div>
                         
@@ -462,13 +338,13 @@ export default function ProductsPage() {
                           </span>
                           
                           <div className="flex gap-2">
-                            <Link href={`/products/${product._id}`}>
+                            <Link href={`/product/${product.id}`}>
                               <Button variant="outline">
                                 Voir Détails
                               </Button>
                             </Link>
                             <Button 
-                              onClick={() => handleAddToCart(product._id)}
+                              onClick={() => handleAddToCart(product.id)}
                               className="bg-blue-600 hover:bg-blue-700 text-white"
                               disabled={product.stock === 0}
                             >
